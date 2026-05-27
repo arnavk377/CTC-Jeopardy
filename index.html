@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTC Jeopardy!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Tokens ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:      #060CE9;
+      --blue-dark: #04089A;
+      --blue-mid:  #0A12CC;
+      --blue-dim:  #08106B;
+      --gold:      #FFD700;
+      --gold-lt:   #FFE84D;
+      --answered:  #10154A;
+      --white:     #FFFFFF;
+      --green:     #00C94A;
+      --red:       #E03030;
+      --radius:    10px;
+
+      --t1: #FF6B6B;
+      --t2: #4ECDC4;
+      --t3: #FFE66D;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Roboto Condensed', 'Arial Narrow', Arial, sans-serif;
+      background: var(--blue);
+      color: var(--gold);
+      overflow-x: hidden;
+    }
+
+    /* ─── Utility ────────────────────────────────────────────── */
+    .hidden  { display: none !important; }
+    .screen  { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; }
+    .card    { background: var(--blue-dark); border: 3px solid var(--gold); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 640px; }
+
+    .btn {
+      font-family: 'Roboto Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border: none;
+      border-radius: 8px;
+      padding: .6rem 1.4rem;
+      cursor: pointer;
+      transition: transform .12s, box-shadow .12s, opacity .12s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    .btn-gold   { background: var(--gold); color: var(--blue-dark); }
+    .btn-gold:not(:disabled):hover   { background: var(--gold-lt); box-shadow: 0 4px 14px rgba(255,215,0,.4); }
+    .btn-outline { background: transparent; color: var(--gold); border: 2px solid var(--gold); }
+    .btn-outline:hover { background: rgba(255,215,0,.1); }
+    .btn-green  { background: var(--green); color: #fff; }
+    .btn-green:not(:disabled):hover  { background: #00e055; }
+    .btn-red    { background: var(--red);   color: #fff; }
+    .btn-red:not(:disabled):hover    { background: #ff4444; }
+    .btn-lg     { font-size: 1.25rem; padding: .8rem 2rem; width: 100%; }
+    .btn-sm     { font-size: .85rem;  padding: .35rem .9rem; }
+
+    input[type="text"], input[type="number"] {
+      background: rgba(255,215,0,.08);
+      border: 2px solid var(--gold);
+      border-radius: 6px;
+      color: var(--white);
+      padding: .45rem .9rem;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    input:focus { outline: none; border-color: var(--white); background: rgba(255,215,0,.15); }
+    input::placeholder { color: rgba(255,215,0,.35); }
+
+    .section-lbl {
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: rgba(255,215,0,.6);
+      margin-bottom: .6rem;
+    }
+
+    /* ─── SETUP SCREEN ───────────────────────────────────────── */
+    #setup-screen {
+      background: radial-gradient(ellipse at 50% 0%, #0813CC 0%, #020770 100%);
+    }
+
+    .logo {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(3rem, 10vw, 6rem);
+      color: var(--gold);
+      text-shadow: 4px 4px 0 #8B6800, 0 0 40px rgba(255,215,0,.35);
+      letter-spacing: .12em;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--gold);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background .15s;
+      margin-bottom: .5rem;
+    }
+    .upload-zone:hover, .upload-zone.drag-over { background: rgba(255,215,0,.08); }
+    .upload-zone .icon { font-size: 2rem; margin-bottom: .4rem; }
+
+    #upload-status { font-size: .9rem; margin-top: .4rem; min-height: 1.2rem; }
+    .status-ok  { color: var(--green); }
+    .status-err { color: var(--red); }
+
+    .team-grid {
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+    .team-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .team-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .team-row input { flex: 1; }
+
+    .template-link { text-align: center; margin-top: 1rem; font-size: .85rem; color: rgba(255,215,0,.6); }
+    .template-link a { color: var(--gold); cursor: pointer; }
+    .template-link a:hover { color: var(--gold-lt); }
+
+    /* ─── GAME SCREEN ────────────────────────────────────────── */
+    #game-screen {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      padding: .5rem .5rem .4rem;
+      gap: .4rem;
+    }
+
+    .game-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      padding: 0 .25rem;
+    }
+    .game-logo {
+      font-family: 'Anton', sans-serif;
+      font-size: 1.8rem;
+      text-shadow: 2px 2px 0 #8B6800;
+      letter-spacing: .1em;
+    }
+
+    /* Board */
+    #board {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      /* 1 header row + 5 question rows */
+      grid-template-rows: minmax(70px, auto) repeat(5, 1fr);
+      gap: 3px;
+      min-height: 0;
+    }
+
+    .cat-cell {
+      background: var(--blue-dark);
+      border: 2px solid #1A1AB0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: .5rem .4rem;
+      text-align: center;
+      font-weight: 700;
+      font-size: clamp(.65rem, 1.1vw, .95rem);
+      text-transform: uppercase;
+      color: var(--white);
+      line-height: 1.2;
+    }
+
+    .q-cell {
+      background: var(--blue);
+      border: 2px solid #1A1AB0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(1.2rem, 2.5vw, 2rem);
+      color: var(--gold);
+      cursor: pointer;
+      transition: background .12s, transform .1s, box-shadow .1s;
+      user-select: none;
+      position: relative;
+    }
+    .q-cell:hover:not(.used) {
+      background: var(--blue-mid);
+      transform: scale(1.03);
+      z-index: 1;
+      box-shadow: 0 0 18px rgba(255,215,0,.25);
+    }
+    .q-cell.used {
+      background: var(--answered);
+      color: var(--answered);
+      cursor: default;
+      pointer-events: none;
+    }
+    /* tiny DD star badge — hidden until revealed */
+    .q-cell .dd-badge {
+      display: none; /* not shown on board */
+    }
+
+    /* Scoreboards */
+    #scoreboards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .5rem;
+      flex-shrink: 0;
+    }
+
+    .scoreboard {
+      background: var(--blue-dark);
+      border: 3px solid;
+      border-radius: 8px;
+      padding: .5rem .75rem;
+      text-align: center;
+      transition: box-shadow .3s;
+    }
+    .scoreboard.leader {
+      box-shadow: 0 0 20px rgba(255,215,0,.45);
+    }
+    .sb-name {
+      font-size: .85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sb-score {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(1.3rem, 2.5vw, 2rem);
+    }
+
+    /* ─── MODALS ─────────────────────────────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.82);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .overlay.open { display: flex; }
+
+    .modal {
+      background: var(--blue-dark);
+      border: 3px solid var(--gold);
+      border-radius: 14px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 780px;
+      max-height: 92vh;
+      overflow-y: auto;
+      position: relative;
+      animation: modalIn .2s ease-out;
+    }
+    @keyframes modalIn {
+      from { transform: scale(.93); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: .75rem; right: .75rem;
+      background: none;
+      border: 2px solid rgba(255,215,0,.3);
+      color: rgba(255,215,0,.5);
+      border-radius: 50%;
+      width: 34px; height: 34px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .modal-close:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Question modal */
+    .q-value-display {
+      font-family: 'Anton', sans-serif;
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: .2rem;
+    }
+    .q-cat-display {
+      text-align: center;
+      font-size: .85rem;
+      color: rgba(255,215,0,.55);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 1rem;
+    }
+    .q-body {
+      background: rgba(0,0,0,.25);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .q-body .q-text {
+      font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+      color: var(--white);
+      line-height: 1.45;
+    }
+    .q-body img {
+      max-width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    .answer-reveal-wrap { margin-bottom: 1.25rem; }
+    .answer-text {
+      font-size: 1.1rem;
+      color: var(--green);
+      display: none;
+      margin-top: .4rem;
+    }
+
+    /* Team answer rows */
+    .team-answer-rows { display: flex; flex-direction: column; gap: .5rem; }
+    .team-answer-row {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      background: rgba(0,0,0,.2);
+      border-radius: 8px;
+      padding: .5rem .75rem;
+      border-left: 4px solid;
+    }
+    .tar-name { flex: 1; font-weight: 700; font-size: .95rem; }
+    .tar-status { font-size: .8rem; color: rgba(255,255,255,.5); min-width: 60px; text-align: right; }
+    .tar-status.correct { color: var(--green); }
+    .tar-status.wrong   { color: var(--red); }
+
+    /* ─── DAILY DOUBLE MODAL ──────────────────────────────────── */
+    .dd-modal { max-width: 500px; text-align: center; }
+
+    .dd-title {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(2.5rem, 7vw, 4rem);
+      text-shadow: 3px 3px 0 #8B6800;
+      animation: ddGlow .7s ease-in-out infinite alternate;
+      margin-bottom: .5rem;
+    }
+    @keyframes ddGlow {
+      from { text-shadow: 3px 3px 0 #8B6800, 0 0 15px rgba(255,215,0,.3); }
+      to   { text-shadow: 3px 3px 0 #8B6800, 0 0 35px rgba(255,215,0,.7); }
+    }
+
+    .dd-cat-label { color: rgba(255,255,255,.7); margin-bottom: 1.5rem; font-size: 1rem; }
+
+    .dd-team-btns {
+      display: flex;
+      gap: .5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .dd-team-btn {
+      min-width: 110px;
+      border: 2px solid;
+      background: transparent;
+      border-radius: 8px;
+      padding: .5rem 1rem;
+      font-family: 'Roboto Condensed', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .dd-team-btn.selected { opacity: 1; }
+
+    .dd-wager-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .75rem;
+      margin-bottom: .4rem;
+    }
+    .dd-wager-row input { width: 150px; font-size: 1.3rem; text-align: center; }
+    .dd-wager-hint { font-size: .8rem; color: rgba(255,215,0,.5); margin-bottom: 1.25rem; }
+
+    /* ─── FINAL JEOPARDY SCREEN ──────────────────────────────── */
+    #fj-screen {
+      display: none;
+      background: radial-gradient(ellipse at 50% 0%, #0813CC 0%, #020770 100%);
+    }
+    .fj-logo {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      text-shadow: 3px 3px 0 #8B6800;
+      letter-spacing: .1em;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    /* FJ steps */
+    .fj-step { display: none; width: 100%; max-width: 640px; }
+    .fj-step.active { display: block; }
+
+    .fj-category-banner {
+      background: rgba(0,0,0,.3);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 1.5rem;
+    }
+    .fj-wager-rows { display: flex; flex-direction: column; gap: .75rem; margin-bottom: 1.25rem; }
+    .fj-wager-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      background: rgba(0,0,0,.2);
+      border-radius: 8px;
+      padding: .6rem 1rem;
+    }
+    .fj-wager-row .lbl { flex: 1; font-weight: 700; }
+    .fj-wager-row .score-hint { font-size: .8rem; color: rgba(255,215,0,.5); min-width: 80px; text-align: right; }
+    .fj-wager-row input { width: 120px; font-size: 1rem; text-align: center; }
+
+    .fj-mark-rows { display: flex; flex-direction: column; gap: .6rem; margin: 1rem 0; }
+    .fj-mark-row {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      background: rgba(0,0,0,.2);
+      border-radius: 8px;
+      padding: .6rem 1rem;
+      border-left: 4px solid;
+    }
+    .fj-mark-row .lbl { flex: 1; font-weight: 700; }
+    .fj-mark-row .wager-badge { font-size: .8rem; color: rgba(255,215,0,.55); }
+    .fj-mark-row .result-badge { font-size: .85rem; min-width: 80px; text-align: right; }
+    .fj-mark-row .result-badge.correct { color: var(--green); }
+    .fj-mark-row .result-badge.wrong   { color: var(--red); }
+
+    /* ─── RESULTS SCREEN ─────────────────────────────────────── */
+    #results-screen {
+      display: none;
+      background: radial-gradient(ellipse at 50% 0%, #0813CC 0%, #020770 100%);
+    }
+    .results-title {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(2rem, 6vw, 3rem);
+      text-shadow: 3px 3px 0 #8B6800;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .result-rows { display: flex; flex-direction: column; gap: .75rem; width: 100%; max-width: 480px; }
+    .result-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border: 3px solid;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      font-size: 1.25rem;
+      animation: fadeUp .5s ease-out both;
+    }
+    .result-row:nth-child(1) { animation-delay: .0s; }
+    .result-row:nth-child(2) { animation-delay: .15s; }
+    .result-row:nth-child(3) { animation-delay: .3s; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
+    .result-row.first { box-shadow: 0 0 30px rgba(255,215,0,.45); }
+    .result-medal { font-size: 1.6rem; }
+    .result-name  { flex: 1; font-weight: 700; }
+    .result-score { font-family: 'Anton', sans-serif; }
+
+    /* ─── Confetti ────────────────────────────────────────────── */
+    .confetti {
+      position: fixed;
+      width: 9px; height: 9px;
+      pointer-events: none;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      0%   { transform: translateY(-10px) rotate(0deg);   opacity: 1; }
+      100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SETUP SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="setup-screen" class="screen">
+  <div class="logo">JEOPARDY!</div>
+
+  <div class="card">
+    <h2 style="text-align:center;font-size:1.3rem;margin-bottom:1.5rem;">Game Setup</h2>
+
+    <!-- Upload -->
+    <div class="section-lbl">📋 Load Questions (JSON)</div>
+    <div class="upload-zone" id="upload-zone" tabindex="0"
+         onclick="document.getElementById('file-inp').click()"
+         onkeydown="if(event.key==='Enter')this.click()">
+      <div class="icon">📁</div>
+      <div>Click or drag &amp; drop a <strong>questions.json</strong> file</div>
+      <input type="file" id="file-inp" accept=".json" style="display:none" onchange="onFileChosen(event)" />
+    </div>
+    <div id="upload-status"></div>
+
+    <hr style="border-color:rgba(255,215,0,.15);margin:1.25rem 0;" />
+
+    <!-- Teams -->
+    <div class="section-lbl">👥 Team Names</div>
+    <div class="team-grid" id="team-grid">
+      <!-- injected by JS -->
+    </div>
+
+    <button class="btn btn-gold btn-lg" id="start-btn" onclick="startGame()" disabled>
+      🎯 Start Game
+    </button>
+
+    <div class="template-link">
+      <a onclick="downloadTemplate()">Download sample questions.json template</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GAME SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="game-screen">
+  <div class="game-header">
+    <div class="game-logo">JEOPARDY!</div>
+    <button class="btn btn-outline btn-sm" onclick="promptFinalJeopardy()">Final Jeopardy →</button>
+  </div>
+
+  <div id="board"><!-- filled by JS --></div>
+
+  <div id="scoreboards"><!-- filled by JS --></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     QUESTION MODAL
+════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="q-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeQuestionModal()">✕</button>
+
+    <div class="q-value-display" id="q-value-display"></div>
+    <div class="q-cat-display"   id="q-cat-display"></div>
+
+    <div class="q-body" id="q-body"><!-- question text/image --></div>
+
+    <div class="answer-reveal-wrap">
+      <div class="section-lbl">Answer</div>
+      <button class="btn btn-outline btn-sm" id="reveal-btn" onclick="revealAnswer()">👁 Reveal Answer</button>
+      <div class="answer-text" id="answer-text"></div>
+    </div>
+
+    <div class="section-lbl" style="margin-top:.75rem;">Award Points</div>
+    <div class="team-answer-rows" id="team-answer-rows"><!-- filled by JS --></div>
+
+    <div style="text-align:center;margin-top:1.25rem;">
+      <button class="btn btn-outline" onclick="closeQuestionModal()">Close Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     DAILY DOUBLE MODAL
+════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="dd-overlay">
+  <div class="modal dd-modal">
+    <div class="dd-title">⭐ DAILY DOUBLE! ⭐</div>
+    <div class="dd-cat-label" id="dd-cat-label"></div>
+
+    <div class="section-lbl">Which team selected this clue?</div>
+    <div class="dd-team-btns" id="dd-team-btns"><!-- filled by JS --></div>
+
+    <div class="section-lbl">Enter Wager</div>
+    <div class="dd-wager-row">
+      <span>$</span>
+      <input type="number" id="dd-wager-inp" min="0" placeholder="0" />
+    </div>
+    <div class="dd-wager-hint" id="dd-wager-hint"></div>
+
+    <button class="btn btn-gold btn-lg" onclick="submitDDWager()">Place Wager &amp; See Clue →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FINAL JEOPARDY SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="fj-screen" class="screen">
+  <div class="fj-logo">FINAL JEOPARDY!</div>
+
+  <!-- Step 1: Wagers -->
+  <div class="fj-step active card" id="fj-wager-step">
+    <div class="section-lbl" style="text-align:center;margin-bottom:.5rem;">Category</div>
+    <div class="fj-category-banner" id="fj-cat-banner"></div>
+
+    <div class="section-lbl">Enter Wagers</div>
+    <div class="fj-wager-rows" id="fj-wager-rows"><!-- JS --></div>
+    <p style="font-size:.8rem;color:rgba(255,215,0,.45);margin-bottom:1.25rem;">
+      Each team may wager $0 up to their current score.
+    </p>
+    <button class="btn btn-gold btn-lg" onclick="showFJClue()">Reveal Clue →</button>
+  </div>
+
+  <!-- Step 2: Clue + Mark Answers -->
+  <div class="fj-step card" id="fj-clue-step">
+    <div class="section-lbl" style="text-align:center;margin-bottom:.25rem;">Category</div>
+    <div class="fj-category-banner" id="fj-cat-banner-2"></div>
+
+    <div class="q-body" id="fj-q-body" style="margin-bottom:1.25rem;"></div>
+
+    <div class="answer-reveal-wrap" style="margin-bottom:1rem;">
+      <button class="btn btn-outline btn-sm" id="fj-reveal-btn" onclick="revealFJAnswer()">👁 Reveal Answer</button>
+      <div class="answer-text" id="fj-answer-text"></div>
+    </div>
+
+    <div class="section-lbl">Mark Each Team's Answer</div>
+    <div class="fj-mark-rows" id="fj-mark-rows"><!-- JS --></div>
+
+    <button class="btn btn-gold btn-lg" style="margin-top:1rem;" onclick="showResults()">See Final Scores →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     RESULTS SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="results-screen" class="screen">
+  <div class="results-title">🏆 Final Scores 🏆</div>
+  <div class="result-rows" id="result-rows"></div>
+  <button class="btn btn-outline" style="margin-top:2rem;" onclick="resetToSetup()">↩ Play Again</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════ -->
+<script>
+/* ────────────────────────────────────────────────────────────
+   STATE
+──────────────────────────────────────────────────────────── */
+const TEAM_COLORS = ['var(--t1)', 'var(--t2)', 'var(--t3)'];
+const TEAM_HEX    = ['#FF6B6B',   '#4ECDC4',   '#FFE66D'];
+const DD_VALUES   = [300, 400, 500];
+const MEDALS      = ['🥇', '🥈', '🥉'];
+
+let G = null; // game state
+
+/* ────────────────────────────────────────────────────────────
+   SETUP UI — build team input rows on page load
+──────────────────────────────────────────────────────────── */
+(function buildSetupTeams() {
+  const grid = document.getElementById('team-grid');
+  ['Team 1', 'Team 2', 'Team 3'].forEach((def, i) => {
+    const row = document.createElement('div');
+    row.className = 'team-row';
+    row.innerHTML = `
+      <div class="team-dot" style="background:${TEAM_HEX[i]}"></div>
+      <input type="text" id="tname-${i}" value="${def}" placeholder="Enter team name" />
+    `;
+    grid.appendChild(row);
+  });
+})();
+
+/* ────────────────────────────────────────────────────────────
+   FILE UPLOAD
+──────────────────────────────────────────────────────────── */
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) readFile(f);
+});
+
+function onFileChosen(e) { if (e.target.files[0]) readFile(e.target.files[0]); }
+
+function readFile(file) {
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      validateData(data);
+      window._loadedData = data;
+      setStatus(`✅ Loaded: ${data.categories.length} categories · ${data.categories.length * 5} clues`, true);
+      document.getElementById('start-btn').disabled = false;
+    } catch (err) {
+      setStatus(`❌ ${err.message}`, false);
+    }
+  };
+  r.readAsText(file);
+}
+
+function setStatus(msg, ok) {
+  const el = document.getElementById('upload-status');
+  el.textContent = msg;
+  el.className = ok ? 'status-ok' : 'status-err';
+}
+
+function validateData(d) {
+  if (!d.categories || !Array.isArray(d.categories) || d.categories.length !== 6)
+    throw new Error('Need exactly 6 categories.');
+  d.categories.forEach((c, ci) => {
+    if (!c.name) throw new Error(`Category ${ci+1} missing "name".`);
+    if (!Array.isArray(c.questions) || c.questions.length !== 5)
+      throw new Error(`"${c.name}" must have exactly 5 questions.`);
+    c.questions.forEach((q, qi) => {
+      if (!q.value) throw new Error(`${c.name} Q${qi+1} missing "value".`);
+    });
+  });
+  if (!d.finalJeopardy) throw new Error('Missing "finalJeopardy" object.');
+  if (!d.finalJeopardy.category) throw new Error('"finalJeopardy" missing "category".');
+}
+
+/* ────────────────────────────────────────────────────────────
+   START GAME
+──────────────────────────────────────────────────────────── */
+function startGame() {
+  const raw = window._loadedData;
+
+  const teams = [0,1,2].map(i => ({
+    name:  document.getElementById(`tname-${i}`).value.trim() || `Team ${i+1}`,
+    score: 0,
+    color: TEAM_COLORS[i],
+    hex:   TEAM_HEX[i],
+  }));
+
+  // Deep-copy categories and attach runtime fields
+  const categories = raw.categories.map(c => ({
+    name: c.name,
+    questions: c.questions.map(q => ({
+      value:     q.value,
+      clue:      q.clue   || null,
+      answer:    q.answer || '',
+      image:     q.image  || null,
+      imageOnly: !!q.imageOnly,
+      isDailyDouble: false,
+      // per-team tracking
+      answeredBy: [],   // team indices that have already tried
+      pointsAwarded: false,
+    })),
+  }));
+
+  // Place 2 daily doubles in $300/$400/$500 slots
+  const eligible = [];
+  categories.forEach((c, ci) =>
+    c.questions.forEach((q, qi) => {
+      if (DD_VALUES.includes(q.value)) eligible.push({ci, qi});
+    })
+  );
+  shuffle(eligible);
+  eligible.slice(0, 2).forEach(({ci, qi}) => categories[ci].questions[qi].isDailyDouble = true);
+
+  G = {
+    teams,
+    categories,
+    finalJeopardy: {
+      category:  raw.finalJeopardy.category,
+      clue:      raw.finalJeopardy.clue      || null,
+      answer:    raw.finalJeopardy.answer    || '',
+      image:     raw.finalJeopardy.image     || null,
+      imageOnly: !!raw.finalJeopardy.imageOnly,
+      wagers:    [0, 0, 0],
+      results:   [null, null, null], // null | 'correct' | 'wrong'
+    },
+    ddCtx: null, // {ci, qi, teamIndex, wager}
+    openQ: null, // {ci, qi, value}
+  };
+
+  renderBoard();
+  renderScoreboards();
+
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display  = 'flex';
+}
+
+/* ────────────────────────────────────────────────────────────
+   BOARD RENDERING
+──────────────────────────────────────────────────────────── */
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  // Category header row
+  G.categories.forEach(c => {
+    const cell = document.createElement('div');
+    cell.className = 'cat-cell';
+    cell.textContent = c.name.toUpperCase();
+    board.appendChild(cell);
+  });
+
+  // 5 question rows
+  const vals = [100, 200, 300, 400, 500];
+  vals.forEach((val, ri) => {
+    G.categories.forEach((cat, ci) => {
+      const q    = cat.questions[ri];
+      const cell = document.createElement('div');
+      cell.className = 'q-cell';
+      cell.id = `cell-${ci}-${ri}`;
+
+      if (q.pointsAwarded) {
+        cell.classList.add('used');
+      } else {
+        cell.textContent = `$${val}`;
+        cell.addEventListener('click', () => openQuestion(ci, ri));
+      }
+      board.appendChild(cell);
+    });
+  });
+}
+
+function setCellUsed(ci, qi) {
+  const cell = document.getElementById(`cell-${ci}-${qi}`);
+  if (cell) { cell.classList.add('used'); cell.textContent = ''; }
+}
+
+/* ────────────────────────────────────────────────────────────
+   SCOREBOARDS
+──────────────────────────────────────────────────────────── */
+function renderScoreboards() {
+  const wrap = document.getElementById('scoreboards');
+  wrap.innerHTML = '';
+  G.teams.forEach((t, i) => {
+    const div = document.createElement('div');
+    div.className = 'scoreboard';
+    div.id = `sb-${i}`;
+    div.style.borderColor = t.hex;
+    div.innerHTML = `
+      <div class="sb-name" style="color:${t.hex}">${escHtml(t.name)}</div>
+      <div class="sb-score" style="color:${t.hex}">$${t.score.toLocaleString()}</div>`;
+    wrap.appendChild(div);
+  });
+  updateLeader();
+}
+
+function updateScoreboards() {
+  G.teams.forEach((t, i) => {
+    const sb = document.getElementById(`sb-${i}`);
+    if (!sb) return;
+    sb.querySelector('.sb-score').textContent = `$${t.score.toLocaleString()}`;
+    // flash
+    sb.querySelector('.sb-score').animate([{color:'#fff'},{color:t.hex}], {duration:600});
+  });
+  updateLeader();
+}
+
+function updateLeader() {
+  const max = Math.max(...G.teams.map(t => t.score));
+  G.teams.forEach((t, i) => {
+    const sb = document.getElementById(`sb-${i}`);
+    if (sb) sb.classList.toggle('leader', t.score === max && max > 0);
+  });
+}
+
+/* ────────────────────────────────────────────────────────────
+   QUESTION FLOW
+──────────────────────────────────────────────────────────── */
+function openQuestion(ci, qi) {
+  const q = G.categories[ci].questions[qi];
+  if (q.pointsAwarded) return;
+
+  G.openQ = {ci, qi, value: q.value};
+
+  if (q.isDailyDouble) {
+    openDailyDouble(ci, qi);
+    return;
+  }
+
+  showQuestionModal(ci, qi, `$${q.value}`);
+}
+
+function showQuestionModal(ci, qi, valueLabel) {
+  const q   = G.categories[ci].questions[qi];
+  const cat = G.categories[ci];
+
+  document.getElementById('q-value-display').textContent = valueLabel;
+  document.getElementById('q-cat-display').textContent   = cat.name.toUpperCase();
+
+  // Build clue body
+  const body = document.getElementById('q-body');
+  body.innerHTML = '';
+  if (q.image) {
+    const img = document.createElement('img');
+    img.src = q.image;
+    img.alt = 'Clue image';
+    body.appendChild(img);
+  }
+  if (q.clue && !q.imageOnly) {
+    const p = document.createElement('div');
+    p.className = 'q-text';
+    p.textContent = q.clue;
+    body.appendChild(p);
+  }
+
+  // Answer
+  document.getElementById('answer-text').textContent = q.answer;
+  document.getElementById('answer-text').style.display = 'none';
+  document.getElementById('reveal-btn').style.display  = 'inline-block';
+
+  // Team rows
+  renderTeamAnswerRows(ci, qi, null); // null = not DD
+
+  document.getElementById('q-overlay').classList.add('open');
+}
+
+function renderTeamAnswerRows(ci, qi, ddTeamIndex) {
+  // ddTeamIndex: if not null, only that team can answer (DD scenario)
+  const q    = G.categories[ci].questions[qi];
+  const wrap = document.getElementById('team-answer-rows');
+  wrap.innerHTML = '';
+
+  const awardValue = (ddTeamIndex !== null) ? G.ddCtx.wager : q.value;
+
+  G.teams.forEach((team, ti) => {
+    // In DD, only the selecting team can answer
+    if (ddTeamIndex !== null && ti !== ddTeamIndex) return;
+
+    const already   = q.answeredBy.includes(ti);
+    const row        = document.createElement('div');
+    row.className    = 'team-answer-row';
+    row.id           = `tar-${ti}`;
+    row.style.borderColor = team.hex;
+
+    let statusHtml = '';
+    if (already) {
+      const gotIt = (ci === G.openQ.ci && qi === G.openQ.qi && q._lastCorrectTeam === ti);
+      statusHtml = `<span class="tar-status ${q._correctTeam === ti ? 'correct':'wrong'}">${q._correctTeam === ti ? '✓ Correct':'✗ Wrong'}</span>`;
+    }
+
+    if (already || q.pointsAwarded) {
+      row.innerHTML = `
+        <div class="tar-name" style="color:${team.hex}">${escHtml(team.name)}</div>
+        ${statusHtml}`;
+    } else {
+      row.innerHTML = `
+        <div class="tar-name" style="color:${team.hex}">${escHtml(team.name)}</div>
+        <button class="btn btn-green btn-sm" onclick="markAnswer(${ti},true,${ci},${qi},${awardValue})">✓ Correct (+$${awardValue})</button>
+        <button class="btn btn-red btn-sm"   onclick="markAnswer(${ti},false,${ci},${qi},${awardValue})">✗ Wrong</button>
+      `;
+    }
+    wrap.appendChild(row);
+  });
+
+  // "No one got it" — only if no team was correct yet and not done
+  if (!q.pointsAwarded && ddTeamIndex === null) {
+    const noOneRow = document.createElement('div');
+    noOneRow.style.cssText = 'text-align:center;margin-top:.5rem;';
+    noOneRow.innerHTML = `<button class="btn btn-outline btn-sm" onclick="markNoOne(${ci},${qi})">No one got it — close question</button>`;
+    wrap.appendChild(noOneRow);
+  }
+}
+
+function markAnswer(teamIndex, correct, ci, qi, awardValue) {
+  const q    = G.categories[ci].questions[qi];
+  const team = G.teams[teamIndex];
+
+  if (correct) {
+    team.score += awardValue;
+    q._correctTeam = teamIndex;
+    q.pointsAwarded = true;
+    q.answeredBy.push(teamIndex);
+    updateScoreboards();
+    setCellUsed(ci, qi);
+    closeQuestionModal();
+    closeDDOverlay();
+  } else {
+    // Wrong — add to answered but keep question open (unless DD)
+    q.answeredBy.push(teamIndex);
+    const isDDContext = G.ddCtx && G.ddCtx.ci === ci && G.ddCtx.qi === qi;
+    if (isDDContext) {
+      // DD: wrong = done, no deduction
+      q.pointsAwarded = true;
+      setCellUsed(ci, qi);
+      closeQuestionModal();
+      closeDDOverlay();
+    } else {
+      // Re-render team rows so that team is now grayed
+      renderTeamAnswerRows(ci, qi, null);
+      // Check if all teams answered wrong → auto-close
+      if (q.answeredBy.length >= G.teams.length) {
+        q.pointsAwarded = true;
+        setCellUsed(ci, qi);
+        closeQuestionModal();
+      }
+    }
+  }
+}
+
+function markNoOne(ci, qi) {
+  const q = G.categories[ci].questions[qi];
+  q.pointsAwarded = true;
+  setCellUsed(ci, qi);
+  closeQuestionModal();
+}
+
+function revealAnswer() {
+  document.getElementById('answer-text').style.display = 'block';
+  document.getElementById('reveal-btn').style.display  = 'none';
+}
+
+function closeQuestionModal() {
+  document.getElementById('q-overlay').classList.remove('open');
+  G.openQ = null;
+}
+
+/* ────────────────────────────────────────────────────────────
+   DAILY DOUBLE FLOW
+──────────────────────────────────────────────────────────── */
+function openDailyDouble(ci, qi) {
+  const cat = G.categories[ci];
+  const q   = cat.questions[qi];
+
+  G.ddCtx = {ci, qi, teamIndex: null, wager: 0};
+
+  document.getElementById('dd-cat-label').textContent =
+    `${cat.name} · $${q.value} clue`;
+
+  // Build team selector buttons
+  const wrap = document.getElementById('dd-team-btns');
+  wrap.innerHTML = '';
+  G.teams.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'dd-team-btn';
+    btn.id        = `dd-tbtn-${i}`;
+    btn.textContent = t.name;
+    btn.style.borderColor = t.hex;
+    btn.style.color       = t.hex;
+    btn.onclick = () => selectDDTeam(i);
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('dd-wager-inp').value = '';
+  document.getElementById('dd-wager-hint').textContent = 'Select a team first';
+  document.getElementById('dd-overlay').classList.add('open');
+}
+
+function selectDDTeam(i) {
+  G.ddCtx.teamIndex = i;
+  const team = G.teams[i];
+  const maxW = Math.max(team.score, 500);
+
+  // Highlight
+  G.teams.forEach((_, idx) => {
+    const btn = document.getElementById(`dd-tbtn-${idx}`);
+    btn.style.background = idx === i ? hexAlpha(team.hex, .25) : 'transparent';
+    btn.style.fontWeight  = idx === i ? '700' : '400';
+  });
+
+  document.getElementById('dd-wager-inp').max = maxW;
+  document.getElementById('dd-wager-hint').textContent =
+    `Current score: $${team.score.toLocaleString()} · Max wager: $${maxW.toLocaleString()}`;
+}
+
+function submitDDWager() {
+  if (G.ddCtx.teamIndex === null) { alert('Please select which team chose this Daily Double.'); return; }
+
+  const team  = G.teams[G.ddCtx.teamIndex];
+  const maxW  = Math.max(team.score, 500);
+  const wager = parseInt(document.getElementById('dd-wager-inp').value, 10);
+
+  if (isNaN(wager) || wager < 0)   { alert('Please enter a valid wager (minimum $0).'); return; }
+  if (wager > maxW)                 { alert(`Maximum wager is $${maxW.toLocaleString()}.`); return; }
+
+  G.ddCtx.wager = wager;
+
+  closeDDOverlay();
+  showQuestionModal(G.ddCtx.ci, G.ddCtx.qi, `⭐ DAILY DOUBLE — Wager: $${wager}`);
+
+  // Override team answer rows for DD: only the selecting team, only one attempt
+  renderTeamAnswerRows(G.ddCtx.ci, G.ddCtx.qi, G.ddCtx.teamIndex);
+}
+
+function closeDDOverlay() {
+  document.getElementById('dd-overlay').classList.remove('open');
+}
+
+/* ────────────────────────────────────────────────────────────
+   FINAL JEOPARDY
+──────────────────────────────────────────────────────────── */
+function promptFinalJeopardy() {
+  if (!confirm('Move to Final Jeopardy? The main board will no longer be accessible.')) return;
+
+  const fj = G.finalJeopardy;
+
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('fj-screen').style.display   = 'flex';
+
+  // Category banners
+  document.getElementById('fj-cat-banner').textContent   = fj.category;
+  document.getElementById('fj-cat-banner-2').textContent = fj.category;
+
+  // Reset steps
+  document.getElementById('fj-wager-step').classList.add('active');
+  document.getElementById('fj-clue-step').classList.remove('active');
+
+  // Build wager rows
+  const rows = document.getElementById('fj-wager-rows');
+  rows.innerHTML = '';
+  G.teams.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'fj-wager-row';
+    row.innerHTML = `
+      <div class="lbl" style="color:${t.hex}">${escHtml(t.name)}</div>
+      <div class="score-hint">$${t.score.toLocaleString()}</div>
+      <input type="number" id="fj-w-${i}" min="0" max="${t.score}" value="0" placeholder="0" />
+    `;
+    rows.appendChild(row);
+  });
+}
+
+function showFJClue() {
+  const fj = G.finalJeopardy;
+
+  // Collect wagers
+  let valid = true;
+  G.teams.forEach((t, i) => {
+    const val = parseInt(document.getElementById(`fj-w-${i}`).value, 10);
+    if (isNaN(val) || val < 0 || val > t.score) {
+      alert(`${t.name}: wager must be $0–$${t.score.toLocaleString()}.`);
+      valid = false;
+    } else {
+      fj.wagers[i] = val;
+    }
+  });
+  if (!valid) return;
+
+  // Switch step
+  document.getElementById('fj-wager-step').classList.remove('active');
+  document.getElementById('fj-clue-step').classList.add('active');
+
+  // Build clue body
+  const body = document.getElementById('fj-q-body');
+  body.innerHTML = '';
+  if (fj.image) {
+    const img = document.createElement('img');
+    img.src = fj.image;
+    img.alt = 'Final Jeopardy clue image';
+    body.appendChild(img);
+  }
+  if (fj.clue && !fj.imageOnly) {
+    const p = document.createElement('div');
+    p.className = 'q-text';
+    p.textContent = fj.clue;
+    body.appendChild(p);
+  }
+
+  // Answer
+  document.getElementById('fj-answer-text').textContent = fj.answer;
+  document.getElementById('fj-answer-text').style.display = 'none';
+  document.getElementById('fj-reveal-btn').style.display  = 'inline-block';
+
+  // Build mark rows
+  const markRows = document.getElementById('fj-mark-rows');
+  markRows.innerHTML = '';
+  G.teams.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'fj-mark-row';
+    row.id        = `fj-mr-${i}`;
+    row.style.borderColor = t.hex;
+    row.innerHTML = `
+      <div class="lbl" style="color:${t.hex}">${escHtml(t.name)}</div>
+      <div class="wager-badge">Wager: $${fj.wagers[i].toLocaleString()}</div>
+      <button class="btn btn-green btn-sm" id="fj-c-${i}" onclick="markFJTeam(${i},true)">✓ Correct</button>
+      <button class="btn btn-red btn-sm"   id="fj-w-btn-${i}" onclick="markFJTeam(${i},false)">✗ Wrong</button>
+      <div class="result-badge" id="fj-rb-${i}"></div>
+    `;
+    markRows.appendChild(row);
+  });
+}
+
+function revealFJAnswer() {
+  document.getElementById('fj-answer-text').style.display = 'block';
+  document.getElementById('fj-reveal-btn').style.display  = 'none';
+}
+
+function markFJTeam(i, correct) {
+  const fj   = G.finalJeopardy;
+  if (fj.results[i] !== null) return; // already marked
+
+  fj.results[i] = correct ? 'correct' : 'wrong';
+  if (correct) G.teams[i].score += fj.wagers[i];
+  // no deduction for wrong
+
+  document.getElementById(`fj-c-${i}`).disabled     = true;
+  document.getElementById(`fj-w-btn-${i}`).disabled = true;
+
+  const rb = document.getElementById(`fj-rb-${i}`);
+  rb.textContent = correct
+    ? `+$${fj.wagers[i].toLocaleString()}`
+    : 'No change';
+  rb.className = `result-badge ${correct ? 'correct' : 'wrong'}`;
+}
+
+function showResults() {
+  document.getElementById('fj-screen').style.display      = 'none';
+  document.getElementById('results-screen').style.display = 'flex';
+
+  const sorted = G.teams
+    .map((t, i) => ({...t, i}))
+    .sort((a, b) => b.score - a.score);
+
+  const container = document.getElementById('result-rows');
+  container.innerHTML = '';
+  sorted.forEach((t, rank) => {
+    const row = document.createElement('div');
+    row.className = `result-row${rank === 0 ? ' first' : ''}`;
+    row.style.borderColor = t.hex;
+    row.innerHTML = `
+      <span class="result-medal">${MEDALS[rank]}</span>
+      <span class="result-name"  style="color:${t.hex}">${escHtml(t.name)}</span>
+      <span class="result-score" style="color:${t.hex}">$${t.score.toLocaleString()}</span>
+    `;
+    container.appendChild(row);
+  });
+
+  launchConfetti();
+}
+
+function resetToSetup() {
+  G = null;
+  window._loadedData = null;
+  document.getElementById('upload-status').textContent = '';
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('file-inp').value = '';
+  document.getElementById('result-rows').innerHTML = '';
+  document.getElementById('results-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display   = 'flex';
+}
+
+/* ────────────────────────────────────────────────────────────
+   CONFETTI
+──────────────────────────────────────────────────────────── */
+function launchConfetti() {
+  const colors = ['#FFD700','#FF6B6B','#4ECDC4','#FFE66D','#ffffff','#A78BFA'];
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti';
+      el.style.left            = `${Math.random() * 100}vw`;
+      el.style.top             = '-12px';
+      el.style.background      = colors[Math.floor(Math.random() * colors.length)];
+      el.style.borderRadius    = Math.random() > .5 ? '50%' : '2px';
+      el.style.animationDuration = `${2.5 + Math.random() * 2}s`;
+      el.style.animationDelay  = `${Math.random() * .8}s`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5000);
+    }, i * 30);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   TEMPLATE DOWNLOAD
+──────────────────────────────────────────────────────────── */
+function downloadTemplate() {
+  const tmpl = {
+    "categories": [
+      {
+        "name": "Science",
+        "questions": [
+          { "value": 100, "clue": "This element has the atomic symbol H.", "answer": "What is Hydrogen?", "image": null },
+          { "value": 200, "clue": "The force that keeps planets in orbit around the sun.", "answer": "What is gravity?", "image": null },
+          { "value": 300, "clue": "This planet is known as the Red Planet.", "answer": "What is Mars?", "image": null },
+          { "value": 400, "clue": "The number of chromosomes in a typical human cell.", "answer": "What is 46?", "image": null },
+          { "value": 500, "clue": "This scientist proposed the theory of general relativity.", "answer": "Who is Albert Einstein?", "image": null }
+        ]
+      },
+      {
+        "name": "History",
+        "questions": [
+          { "value": 100, "clue": "This country hosted the 1936 Summer Olympics.", "answer": "What is Germany?", "image": null },
+          { "value": 200, "clue": "The U.S. president during the Cuban Missile Crisis.", "answer": "Who is John F. Kennedy?", "image": null },
+          { "value": 300, "clue": "This empire built the Colosseum.", "answer": "What is the Roman Empire?", "image": null },
+          { "value": 400, "clue": "The year the Berlin Wall fell.", "answer": "What is 1989?", "image": null },
+          { "value": 500, "clue": "She was the first woman to win a Nobel Prize.", "answer": "Who is Marie Curie?", "image": null }
+        ]
+      },
+      {
+        "name": "Pop Culture",
+        "questions": [
+          { "value": 100, "clue": "This wizard attends Hogwarts.", "answer": "Who is Harry Potter?", "image": null },
+          { "value": 200, "clue": "The fictional African nation in Black Panther.", "answer": "What is Wakanda?", "image": null },
+          { "value": 300, "clue": "Queen's iconic 1975 epic rock opera song.", "answer": "What is Bohemian Rhapsody?", "image": null },
+          { "value": 400, "clue": "She holds the record for most Grammy wins.", "answer": "Who is Beyoncé?", "image": null },
+          {
+            "value": 500,
+            "clue": null,
+            "answer": "What is this famous painting? (e.g. Starry Night by Van Gogh)",
+            "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+            "imageOnly": true
+          }
+        ]
+      },
+      {
+        "name": "Geography",
+        "questions": [
+          { "value": 100, "clue": "The capital of Japan.", "answer": "What is Tokyo?", "image": null },
+          { "value": 200, "clue": "The longest river in the world.", "answer": "What is the Nile?", "image": null },
+          { "value": 300, "clue": "This country has the most natural lakes.", "answer": "What is Canada?", "image": null },
+          { "value": 400, "clue": "The smallest country by area.", "answer": "What is Vatican City?", "image": null },
+          { "value": 500, "clue": "The only country that is also a continent.", "answer": "What is Australia?", "image": null }
+        ]
+      },
+      {
+        "name": "Sports",
+        "questions": [
+          { "value": 100, "clue": "Players per side in a basketball game.", "answer": "What is 5?", "image": null },
+          { "value": 200, "clue": "This country has won the most FIFA World Cups.", "answer": "What is Brazil?", "image": null },
+          { "value": 300, "clue": "He won 23 Grand Slam singles titles.", "answer": "Who is Novak Djokovic?", "image": null },
+          { "value": 400, "clue": "The city that hosted the 2012 Summer Olympics.", "answer": "What is London?", "image": null },
+          { "value": 500, "clue": "This swimmer won 8 gold medals at the 2008 Olympics.", "answer": "Who is Michael Phelps?", "image": null }
+        ]
+      },
+      {
+        "name": "Wild Card",
+        "questions": [
+          { "value": 100, "clue": "The number of sides on a hexagon.", "answer": "What is 6?", "image": null },
+          { "value": 200, "clue": "This language is named after a snake.", "answer": "What is Python?", "image": null },
+          { "value": 300, "clue": "The year the first iPhone was released.", "answer": "What is 2007?", "image": null },
+          { "value": 400, "clue": "This gas makes up ~78% of Earth's atmosphere.", "answer": "What is Nitrogen?", "image": null },
+          { "value": 500, "clue": "The author of '1984' and 'Animal Farm'.", "answer": "Who is George Orwell?", "image": null }
+        ]
+      }
+    ],
+    "finalJeopardy": {
+      "category": "Mixed Bag",
+      "clue": "The only country whose flag is not rectangular or square.",
+      "answer": "What is Nepal?",
+      "image": null,
+      "imageOnly": false
+    }
+  };
+
+  const blob = new Blob([JSON.stringify(tmpl, null, 2)], {type: 'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), {href: url, download: 'questions-template.json'});
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ────────────────────────────────────────────────────────────
+   HELPERS
+──────────────────────────────────────────────────────────── */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function hexAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+</script>
+</body>
+</html>

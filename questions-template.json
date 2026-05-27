@@ -1,0 +1,264 @@
+{
+  "_readme": "CTC Jeopardy — Questions Template. See field notes below.",
+  "_notes": {
+    "categories": "Exactly 6 required.",
+    "questions_per_category": "Exactly 5 required — values must be 100, 200, 300, 400, 500.",
+    "clue": "The question text shown to players. Set to null if you want image-only.",
+    "answer": "What the host reveals as the correct answer.",
+    "image": "Optional. Use an https:// URL OR a base64 data URL (data:image/png;base64,...). Set to null if unused.",
+    "imageOnly": "Set to true to hide the clue text and show only the image (clue can still hold a host hint).",
+    "daily_doubles": "2 Daily Doubles are placed AUTOMATICALLY at random in $300, $400, or $500 clues — do NOT mark them here.",
+    "finalJeopardy": "One object with category, clue, answer, image, imageOnly fields."
+  },
+
+  "categories": [
+    {
+      "name": "Science",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "This element has the atomic symbol H.",
+          "answer": "What is Hydrogen?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "The force that keeps planets in orbit around the sun.",
+          "answer": "What is gravity?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "This planet is known as the Red Planet.",
+          "answer": "What is Mars?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "The number of chromosomes in a typical human cell.",
+          "answer": "What is 46?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "This scientist proposed the theory of general relativity.",
+          "answer": "Who is Albert Einstein?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "This country hosted the 1936 Summer Olympics.",
+          "answer": "What is Germany?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "The U.S. president during the Cuban Missile Crisis.",
+          "answer": "Who is John F. Kennedy?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "This empire built the Colosseum.",
+          "answer": "What is the Roman Empire?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "The year the Berlin Wall fell.",
+          "answer": "What is 1989?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "She was the first woman to win a Nobel Prize.",
+          "answer": "Who is Marie Curie?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    },
+    {
+      "name": "Pop Culture",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "This wizard attends Hogwarts.",
+          "answer": "Who is Harry Potter?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "The fictional African nation in Black Panther.",
+          "answer": "What is Wakanda?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "Queen's iconic 1975 epic rock opera song.",
+          "answer": "What is Bohemian Rhapsody?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "She holds the record for most Grammy wins.",
+          "answer": "Who is Beyoncé?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "Name this famous painting.",
+          "answer": "What is Starry Night by Van Gogh?",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+          "imageOnly": true
+        }
+      ]
+    },
+    {
+      "name": "Geography",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "The capital of Japan.",
+          "answer": "What is Tokyo?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "The longest river in the world.",
+          "answer": "What is the Nile?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "This country has the most natural lakes.",
+          "answer": "What is Canada?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "The smallest country by area.",
+          "answer": "What is Vatican City?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "The only country that is also a continent.",
+          "answer": "What is Australia?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    },
+    {
+      "name": "Sports",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "Players per side on a basketball court.",
+          "answer": "What is 5?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "This country has won the most FIFA World Cups.",
+          "answer": "What is Brazil?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "He won 8 gold medals at the 2008 Beijing Olympics.",
+          "answer": "Who is Michael Phelps?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "The city that hosted the 2012 Summer Olympics.",
+          "answer": "What is London?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "The first Super Bowl was played in this year.",
+          "answer": "What is 1967?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    },
+    {
+      "name": "Wild Card",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "The number of sides on a hexagon.",
+          "answer": "What is 6?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "This programming language is named after a snake.",
+          "answer": "What is Python?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "The year the first iPhone was released.",
+          "answer": "What is 2007?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "This gas makes up approximately 78% of Earth's atmosphere.",
+          "answer": "What is Nitrogen?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "The author of '1984' and 'Animal Farm'.",
+          "answer": "Who is George Orwell?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    }
+  ],
+
+  "finalJeopardy": {
+    "category": "Mixed Bag",
+    "clue": "The only country whose national flag is not rectangular or square.",
+    "answer": "What is Nepal?",
+    "image": null,
+    "imageOnly": false
+  }
+}

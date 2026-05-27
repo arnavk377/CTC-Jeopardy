@@ -1,0 +1,251 @@
+{
+  "categories": [
+    {
+      "name": "Science",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "This is the powerhouse of the cell.",
+          "answer": "What is the mitochondria?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "The chemical formula for water.",
+          "answer": "What is H₂O?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "The speed of light in a vacuum, in meters per second (approximately).",
+          "answer": "What is 300,000,000 m/s (3 × 10⁸ m/s)?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "This scientist discovered penicillin in 1928.",
+          "answer": "Who is Alexander Fleming?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "The half-life of Carbon-14 is approximately this many years.",
+          "answer": "What is 5,730 years?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    },
+    {
+      "name": "World History",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "This ancient wonder was located in Alexandria, Egypt.",
+          "answer": "What is the Lighthouse of Alexandria?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "Napoleon Bonaparte was exiled to this island after Waterloo.",
+          "answer": "What is Saint Helena?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "This document, signed in 1215, limited the power of the English king.",
+          "answer": "What is the Magna Carta?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "The first country to grant women the right to vote (1893).",
+          "answer": "What is New Zealand?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "This ancient trade network connected China to the Mediterranean Sea.",
+          "answer": "What is the Silk Road?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    },
+    {
+      "name": "Pop Culture",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "This Disney movie features a character named Elsa.",
+          "answer": "What is Frozen?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "The fictional address of Sherlock Holmes.",
+          "answer": "What is 221B Baker Street?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "This TV show features a chemistry teacher who becomes a drug kingpin named Heisenberg.",
+          "answer": "What is Breaking Bad?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "The name of the ship that sank in the 1997 James Cameron film.",
+          "answer": "What is the Titanic?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "This artist holds the record for the most weeks at #1 on the Billboard Hot 100 with a single song (as of 2024).",
+          "answer": "Who is Mariah Carey? (All I Want for Christmas Is You)",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    },
+    {
+      "name": "Math & Logic",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "The sum of all angles in a triangle.",
+          "answer": "What is 180 degrees?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "The only even prime number.",
+          "answer": "What is 2?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "In binary, the decimal number 10 is written as this.",
+          "answer": "What is 1010?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "This sequence starts 0, 1, 1, 2, 3, 5, 8, 13 — each number is the sum of the two before it.",
+          "answer": "What is the Fibonacci sequence?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "The mathematical constant approximately equal to 2.71828, the base of the natural logarithm.",
+          "answer": "What is e (Euler's number)?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    },
+    {
+      "name": "Geography",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "The capital city of Australia.",
+          "answer": "What is Canberra?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "The world's largest ocean.",
+          "answer": "What is the Pacific Ocean?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "This mountain range separates Europe from Asia.",
+          "answer": "What are the Ural Mountains?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "The country with the most time zones in the world.",
+          "answer": "What is France? (12 time zones including overseas territories)",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "This is the only sea with no coastline (it is entirely surrounded by ocean).",
+          "answer": "What is the Sargasso Sea?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    },
+    {
+      "name": "Random",
+      "questions": [
+        {
+          "value": 100,
+          "clue": "A group of flamingos is called this.",
+          "answer": "What is a flamboyance?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 200,
+          "clue": "The only mammal capable of true flight.",
+          "answer": "What is a bat?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 300,
+          "clue": "This is the most-sold video game of all time (as of 2024).",
+          "answer": "What is Minecraft?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 400,
+          "clue": "The name for a group of crows.",
+          "answer": "What is a murder (of crows)?",
+          "image": null,
+          "imageOnly": false
+        },
+        {
+          "value": 500,
+          "clue": "This is the shortest war in recorded history, lasting only 38–45 minutes in 1896.",
+          "answer": "What is the Anglo-Zanzibar War?",
+          "image": null,
+          "imageOnly": false
+        }
+      ]
+    }
+  ],
+  "finalJeopardy": {
+    "category": "Pot Luck",
+    "clue": "Of all the countries in the world, this is the only one whose name in English ends in the letter 'Q'.",
+    "answer": "What is Iraq?",
+    "image": null,
+    "imageOnly": false
+  }
+}
